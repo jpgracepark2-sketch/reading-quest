@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📚 Reading Quest — Genga</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#1a1a1a;min-height:100vh}
+
+/* NAV */
+.nav{display:flex;align-items:center;gap:8px;padding:12px 20px;background:#fff;border-bottom:1px solid #e5e5e0;position:sticky;top:0;z-index:100}
+.nav-title{font-size:15px;font-weight:600;flex:1}
+.nav-btn{font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #ddd;background:transparent;cursor:pointer;color:#666}
+.nav-btn:hover{background:#f0f0ee}
+.hidden{display:none!important}
+
+/* LOGIN */
+.login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#e1f5ee 0%,#e6f1fb 100%)}
+.login-card{background:#fff;border-radius:16px;border:1px solid #e5e5e0;padding:36px 32px;max-width:360px;width:100%;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.07)}
+.login-logo{font-size:48px;margin-bottom:12px}
+.login-card h1{font-size:22px;font-weight:700;margin-bottom:6px}
+.login-card p{font-size:13px;color:#888;margin-bottom:28px;line-height:1.6}
+.role-btns{display:flex;gap:10px;margin-bottom:20px}
+.role-btn{flex:1;padding:14px 8px;border-radius:10px;border:1.5px solid #ddd;background:#fafaf8;cursor:pointer;font-size:13px;color:#666;transition:all .15s;line-height:1.6}
+.role-btn.selected{background:#e1f5ee;color:#0F6E56;border-color:#5DCAA5;font-weight:600}
+.role-btn:hover:not(.selected){background:#f5f5f3}
+.name-input{width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid #ddd;font-size:14px;color:#1a1a1a;margin-bottom:12px;outline:none;transition:border .15s}
+.name-input:focus{border-color:#5DCAA5}
+.start-btn{width:100%;padding:12px;border-radius:10px;border:none;background:#1D9E75;color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:background .15s}
+.start-btn:hover{background:#0F6E56}
+.pw-hint{font-size:11px;color:#aaa;margin-top:8px}
+
+/* MAP */
+.map-screen{padding:16px;max-width:640px;margin:0 auto}
+.student-hdr{background:#fff;border-radius:14px;border:1px solid #e5e5e0;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:14px}
+.avatar{width:44px;height:44px;border-radius:50%;background:#9FE1CB;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#085041;flex-shrink:0}
+.xp-wrap{flex:1}
+.xp-name{font-size:14px;font-weight:600;margin-bottom:4px}
+.xp-bar-outer{height:7px;background:#f0f0ee;border-radius:4px;overflow:hidden;margin-bottom:3px}
+.xp-bar-inner{height:100%;background:#1D9E75;border-radius:4px;transition:width .5s}
+.xp-text{font-size:11px;color:#0F6E56;font-weight:600}
+.zone-label{font-size:11px;font-weight:700;color:#aaa;letter-spacing:.1em;text-transform:uppercase;margin:18px 0 8px}
+.quest-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:4px}
+.quest-card{background:#fff;border-radius:14px;border:1px solid #e5e5e0;padding:14px 12px;cursor:pointer;transition:all .15s;position:relative}
+.quest-card:hover:not(.locked){transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.quest-card.locked{opacity:.4;cursor:not-allowed}
+.quest-card.completed{border-color:#5DCAA5;background:#f0faf6}
+.quest-card.playable{border-color:#85B7EB;background:#f0f6fd}
+.q-icon{font-size:24px;margin-bottom:8px}
+.q-name{font-size:12px;font-weight:600;color:#1a1a1a;margin-bottom:2px}
+.q-sub{font-size:11px;color:#aaa}
+.q-badge{position:absolute;top:8px;right:8px;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600}
+.badge-done{background:#9FE1CB;color:#085041}
+.badge-go{background:#B5D4F4;color:#0C447C}
+.badge-lock{background:#f0f0ee;color:#bbb}
+
+/* QUIZ */
+.quiz-screen{padding:16px;max-width:640px;margin:0 auto}
+.quiz-hdr{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.back-btn{padding:7px 12px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;color:#666}
+.back-btn:hover{background:#f5f5f3}
+.quiz-title{font-size:15px;font-weight:600}
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.prog-track{flex:1;height:6px;background:#e5e5e0;border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;background:#378ADD;border-radius:3px;transition:width .3s}
+.prog-txt{font-size:12px;color:#aaa;min-width:36px;text-align:right}
+.q-card{background:#fff;border-radius:14px;border:1px solid #e5e5e0;padding:22px;margin-bottom:12px}
+.q-num{font-size:11px;color:#aaa;font-weight:600;margin-bottom:8px}
+.q-text{font-size:14px;line-height:1.7;color:#1a1a1a;margin-bottom:18px}
+.opts{display:flex;flex-direction:column;gap:9px}
+.opt-btn{padding:11px 16px;border-radius:10px;border:1.5px solid #e5e5e0;background:#fafaf8;cursor:pointer;font-size:13px;color:#1a1a1a;text-align:left;transition:all .15s}
+.opt-btn:hover:not(:disabled){border-color:#bbb;background:#f5f5f3}
+.opt-btn.correct{background:#e1f5ee;border-color:#5DCAA5;color:#085041;font-weight:600}
+.opt-btn.wrong{background:#fef0f0;border-color:#F09595;color:#501313}
+.tf-row{display:flex;gap:12px}
+.tf-row .opt-btn{flex:1;text-align:center;font-size:15px;font-weight:700}
+.trans-area{width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid #e5e5e0;font-size:14px;color:#1a1a1a;resize:vertical;min-height:80px;outline:none;transition:border .15s;font-family:inherit}
+.trans-area:focus{border-color:#5DCAA5}
+.submit-btn{margin-top:10px;padding:10px 22px;border-radius:10px;border:none;background:#378ADD;color:#fff;font-size:13px;font-weight:600;cursor:pointer}
+.submit-btn:hover{background:#185FA5}
+.feedback{padding:12px 16px;border-radius:10px;font-size:13px;margin-top:12px;line-height:1.6}
+.fb-ok{background:#e1f5ee;color:#085041}
+.fb-ng{background:#fef0f0;color:#7A1F1F}
+.next-btn{display:block;width:100%;padding:13px;border-radius:10px;border:none;background:#1D9E75;color:#fff;font-size:14px;font-weight:600;cursor:pointer;margin-top:14px}
+.next-btn:hover{background:#0F6E56}
+
+/* RESULT */
+.result-wrap{padding:32px 20px;max-width:420px;margin:0 auto;text-align:center}
+.result-card{background:#fff;border-radius:16px;border:1px solid #e5e5e0;padding:32px;box-shadow:0 4px 20px rgba(0,0,0,.06)}
+.r-emoji{font-size:56px;margin-bottom:16px}
+.r-stars{font-size:28px;margin-bottom:4px}
+.r-score{font-size:32px;font-weight:700;margin-bottom:6px}
+.r-sub{font-size:13px;color:#888;margin-bottom:18px}
+.r-xp{display:inline-block;padding:7px 20px;background:#e1f5ee;color:#0F6E56;border-radius:20px;font-size:13px;font-weight:700;margin-bottom:20px}
+.r-msg{font-size:13px;color:#666;margin-bottom:24px;line-height:1.7}
+
+/* TEACHER */
+.teacher-screen{padding:16px;max-width:720px;margin:0 auto}
+.t-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.t-hdr h2{font-size:17px;font-weight:700}
+.clear-btn{padding:6px 14px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:12px;color:#888}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.stat-box{background:#fff;border-radius:12px;border:1px solid #e5e5e0;padding:16px;text-align:center}
+.stat-n{font-size:26px;font-weight:700}
+.stat-l{font-size:11px;color:#aaa;margin-top:3px}
+.section-title{font-size:13px;font-weight:700;color:#888;margin-bottom:10px}
+.stu-table{background:#fff;border-radius:12px;border:1px solid #e5e5e0;overflow:hidden;margin-bottom:20px}
+.stu-hdr,.stu-row{display:grid;grid-template-columns:1.4fr 60px 60px 70px;padding:10px 16px;font-size:12px;align-items:center}
+.stu-hdr{background:#fafaf8;color:#aaa;font-weight:700;border-bottom:1px solid #e5e5e0}
+.stu-row{border-bottom:1px solid #f0f0ee}
+.stu-row:last-child{border-bottom:none}
+.q-stat-box{background:#fff;border-radius:12px;border:1px solid #e5e5e0;padding:16px;margin-bottom:12px}
+.q-stat-box h3{font-size:12px;font-weight:700;color:#aaa;margin-bottom:12px}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px}
+.bar-lbl{min-width:110px;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;height:9px;background:#f0f0ee;border-radius:5px;overflow:hidden}
+.bar-fill{height:100%;border-radius:5px;transition:width .7s}
+.bar-pct{min-width:34px;text-align:right;color:#aaa;font-size:11px;font-weight:600}
+.empty-msg{text-align:center;padding:48px 20px;color:#aaa;font-size:14px;line-height:1.8}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav hidden" id="main-nav">
+  <span class="nav-title" id="nav-title">📚 Reading Quest</span>
+  <button class="nav-btn" onclick="logout()">로그아웃</button>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen" class="login-screen">
+  <div class="login-card">
+    <div class="login-logo">📚</div>
+    <h1>Reading Quest</h1>
+    <p>Genga 독해 학습 퀘스트<br>총 50문제 · 4개 Zone 도전!</p>
+    <div class="role-btns">
+      <button class="role-btn selected" id="role-student" onclick="selectRole('student')">🎒<br>학생</button>
+      <button class="role-btn" id="role-teacher" onclick="selectRole('teacher')">📊<br>교사</button>
+    </div>
+
+    <!-- 학생 입력 폼 -->
+    <div id="student-form">
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <select class="name-input" id="class-select" style="flex:1;cursor:pointer">
+          <option value="">반 선택</option>
+          <option value="1">1반</option>
+          <option value="2">2반</option>
+          <option value="3">3반</option>
+          <option value="4">4반</option>
+          <option value="5">5반</option>
+          <option value="6">6반</option>
+        </select>
+        <input class="name-input" id="number-input" placeholder="번호" type="number" min="1" max="40" style="width:80px;flex:none" />
+      </div>
+      <input class="name-input" id="name-input" placeholder="이름을 입력하세요" onkeydown="if(event.key==='Enter')startApp()" />
+    </div>
+
+    <!-- 교사 입력 폼 -->
+    <div id="teacher-form" style="display:none">
+      <input class="name-input" id="teacher-password-input" type="password" placeholder="교사 비밀번호 입력" onkeydown="if(event.key==='Enter')startApp()" />
+      <div class="pw-hint">교사용 비밀번호를 입력하세요</div>
+    </div>
+
+    <button class="start-btn" onclick="startApp()">시작하기 →</button>
+  </div>
+</div>
+
+<!-- MAP -->
+<div id="map-screen" class="map-screen hidden"></div>
+
+<!-- QUIZ -->
+<div id="quiz-screen" class="quiz-screen hidden"></div>
+
+<!-- TEACHER -->
+<div id="teacher-screen" class="teacher-screen hidden"></div>
+
+<script>
+const RESULT_KEY = 'rq_results_v2';
+
+const ZONES = [
+  {
+    id:'z1', name:'Zone 1: O/X 판단', icon:'🔍',
+    quests:[
+      {id:'q1',name:'운동과 소화',icon:'🏃',sub:'1~5번',type:'tf',qs:[
+        {q:"When you start to exercise, blood moves from your muscles to the digestive system to supply energy.",a:'X',exp:"운동 시 혈액은 소화기관 → 근육으로 이동합니다."},
+        {q:"Exercising right after eating can cause stomach problems because digestion is interrupted.",a:'O',exp:"맞습니다. 식사 직후 운동은 소화를 방해할 수 있습니다."},
+        {q:"Glucose is the name for Glycogen when it is stored in the stomach.",a:'X',exp:"틀렸습니다. 글리코겐은 위(stomach)가 아니라 근육과 간에 저장됩니다."},
+        {q:"Exercising on an empty stomach is good because the body burns fat more efficiently.",a:'X',exp:"공복 운동은 에너지 부족으로 오히려 좋지 않을 수 있습니다."},
+        {q:"You should avoid exercising both on a completely empty stomach and with a stomach full of food.",a:'O',exp:"맞습니다. 공복과 포식 모두 운동에 좋지 않습니다."},
+      ]},
+      {id:'q2',name:'숫자와 문명',icon:'🔢',sub:'6~7번',type:'tf',qs:[
+        {q:"The Sumerians' great intellectual leap was separating the numeral from the object they were counting.",a:'O',exp:"맞습니다. 수메르인의 혁신은 숫자를 대상과 분리한 것입니다."},
+        {q:"The concept of the 'emancipated number' was easy to understand even for the earliest civilizations.",a:'X',exp:"해방된 숫자 개념은 초기 문명에게 어려운 개념이었습니다."},
+      ]},
+      {id:'q3',name:'스토리텔링',icon:'🗣️',sub:'8~9번',type:'tf',qs:[
+        {q:"Sharing a personal story is a very effective way to instantly influence an audience.",a:'O',exp:"맞습니다. 개인 이야기는 청중에게 즉각적인 영향을 줍니다."},
+        {q:"People can bond with the speaker's arguments, even though they don't bond with the speaker as a person.",a:'X',exp:"논리만으로는 설득이 어렵습니다. 사람과의 유대가 필요합니다."},
+      ]},
+      {id:'q4',name:'장난감과 선택',icon:'🧸',sub:'10~12번',type:'tf',qs:[
+        {q:"Having too many toys in a play space can make children feel overwhelmed and struggle to make choices.",a:'O',exp:"맞습니다. 너무 많은 장난감은 아이들을 압도합니다."},
+        {q:"The author compares an overfilled toy room to a closet full of clothes where women feel they have nothing to wear.",a:'O',exp:"맞습니다. 이 비유가 본문에 나옵니다."},
+        {q:"In the puzzle box experiment, children copied outgroup members more closely than ingroup members.",a:'X',exp:"아이들은 외집단보다 내집단 구성원을 더 가깝게 모방했습니다."},
+      ]},
+      {id:'q5',name:'집단 행동',icon:'👥',sub:'13~14번',type:'tf',qs:[
+        {q:"Children in the study liked antisocial ingroup members more than prosocial outgroup members.",a:'X',exp:"아이들은 반사회적 내집단 구성원을 좋아하지 않았습니다."},
+        {q:"The study suggests that overimitation is done to learn the most efficient way to complete a task.",a:'X',exp:"과잉모방은 효율보다 집단 규범을 따르기 위해서입니다."},
+      ]},
+      {id:'q6',name:'Less is More 외',icon:'🌱',sub:'15~23번',type:'tf',qs:[
+        {q:'The phrase "less is more" was first mentioned in a poem by Robert Browning.',a:'O',exp:"맞습니다. 로버트 브라우닝의 시에서 유래합니다."},
+        {q:"The physical buttons on devices were removed and their functions were eventually hidden in menus and folders on smartphones.",a:'O',exp:"맞습니다. 스마트폰에서 버튼 기능이 메뉴 속으로 들어갔습니다."},
+        {q:"According to the set point theory, the number of fat cells in an adult body changes significantly as a person gains or loses weight.",a:'X',exp:"지방 세포 수는 성인이 되면 거의 변하지 않습니다."},
+        {q:"In today's fast-paced society, patience can be understood as a form of power rather than weakness.",a:'O',exp:"맞습니다. 인내는 힘의 한 형태입니다."},
+        {q:"During the dawn visit, the inner covers of the greenhouse were easy to lift because the crops inside were still frozen solid.",a:'X',exp:"내부 덮개도 얼어있어 들기 어려웠습니다."},
+        {q:"The king cancelled his war plans after learning a valuable lesson from the sage.",a:'O',exp:"맞습니다. 현자에게서 교훈을 얻어 전쟁을 포기했습니다."},
+        {q:"Patience has traditionally been seen as a sign of strength, encouraging people to fight for their rights.",a:'X',exp:"전통적으로 인내는 약함의 표시로 여겨졌습니다."},
+        {q:"The author's first visit to the greenhouse took place in the afternoon, when the frost on the covers had already melted.",a:'X',exp:"첫 방문은 새벽이었습니다."},
+        {q:"The sage gave the coin to the king because he wanted to help the king be rich.",a:'X',exp:"현자는 왕에게 교훈을 가르치기 위해 동전을 주었습니다."},
+      ]},
+    ]
+  },
+  {
+    id:'z2', name:'Zone 2: 어휘 의미', icon:'📖',
+    quests:[
+      {id:'q7',name:'단어 뜻 고르기',icon:'💬',sub:'24~27번',type:'mc',qs:[
+        {q:'"prosperous"의 의미는?',opts:['peaceful','wealthy and successful','isolated','ancient'],a:1},
+        {q:'"extinguishes"의 의미는?',opts:['gradually strengthens over time','suddenly creates new habits','slowly causes something to disappear','quickly spreads to other areas'],a:2},
+        {q:'"genuine"의 의미는?',opts:['artificial','urgent','real and true','powerful'],a:2},
+        {q:'"invasion"의 의미는?',opts:['a peaceful agreement','an armed attack on a territory','a royal ceremony','a blessing given by a leader'],a:1},
+      ]},
+    ]
+  },
+  {
+    id:'z3', name:'Zone 3: 빈칸 채우기', icon:'✏️',
+    quests:[
+      {id:'q8',name:'문맥 빈칸',icon:'🔠',sub:'28~33번',type:'mc',qs:[
+        {q:'The king was not ________ with what he had, so he decided to expand his kingdom.',opts:['puzzled','satisfied','released','reminded'],a:1},
+        {q:'Patience was traditionally ___ upon housewives, while their husbands led exciting lives.',opts:['derived','expanded','urged','convinced'],a:2},
+        {q:'In a world geared for hurry, the capacity to resist the ___ to rush is a form of power.',opts:['flaw','urge','shade','trigger'],a:1},
+        {q:"The children's dislike of antisocial ingroup members did not ___ their tendency to copy ingroup behavior.",opts:['affect','release','distinguish','convince'],a:0},
+        {q:"The Sumerians developed the idea of an ____ number — one that exists independently of what it counts.",opts:['intellectual','emancipated','minimal','stable'],a:1},
+        {q:"Raising the inner covers of the greenhouse was difficult because they too were ___.",opts:['bleak','vigorous','frozen','striking'],a:2},
+      ]},
+      {id:'q9',name:'동의어 찾기',icon:'🔄',sub:'34~36번',type:'mc',qs:[
+        {q:'"The sage replied calmly to the king\'s question." — "calmly"와 가장 가까운 것은?',opts:['angrily','confidently','quietly and peacefully','reluctantly'],a:2},
+        {q:'"The set point triggers a message to the brain..." — "triggers"와 가장 가까운 것은?',opts:['blocks','delays','sets off','receives'],a:2},
+        {q:'"The king chose to appreciate what he already had." — "appreciate"와 가장 가까운 것은?',opts:['expand','ignore','exchange','value and be grateful for'],a:3},
+      ]},
+      {id:'q10',name:'빈칸 적절한 단어',icon:'🎯',sub:'37~40번',type:'mc',qs:[
+        {q:'Over time, the phrase "less is more" slowly ________ certain habits from daily life.',opts:['released','extinguished','expanded','reminded'],a:1},
+        {q:'According to the set point theory, the body has a ________ quantity of fat cells by the time a person reaches adulthood.',opts:['lowly','passive','stable','multilayered'],a:2},
+        {q:"People tend to copy ingroup behavior not to learn the most ________ method, but to follow the group's rules and conventions.",opts:['passive','efficient','genuine','bleak'],a:1},
+        {q:'Cassie froze and ______ her cotton candy on the ground when she saw the huge parade balloons.',opts:['shared','dropped','approached','stretched'],a:1},
+      ]},
+    ]
+  },
+  {
+    id:'z4', name:'Zone 4: 문장 해석', icon:'🌐',
+    quests:[
+      {id:'q11',name:'해석 1',icon:'🌀',sub:'41~45번',type:'trans',qs:[
+        {q:"If you exercise on an empty stomach, you will most likely lack energy and feel unusually tired.",ko:"공복으로 운동하면 에너지가 부족하고 유난히 피곤함을 느낄 가능성이 높다."},
+        {q:"For this reason, doctors recommend that people eat food containing carbohydrates within thirty minutes after working out.",ko:"이런 이유로, 의사들은 운동 후 30분 이내에 탄수화물이 포함된 음식을 먹도록 권장한다."},
+        {q:"The harsh reality is that people won't bond with your arguments in a vacuum.",ko:"냉혹한 현실은 사람들이 진공 상태에서는 당신의 논증에 공감하지 않는다는 것이다."},
+        {q:"When there's too much to see, too much to step over, and too much input, kids have a hard time making a choice.",ko:"볼 것도 너무 많고, 넘어야 할 것도 너무 많고, 자극도 너무 많으면 아이들은 선택하기 어렵다."},
+        {q:"You want your kids to feel inspired and imaginative in the room – not overcome with indecision.",ko:"당신은 아이들이 방 안에서 영감을 받고 상상력을 발휘하길 원하지, 우유부단함에 압도당하길 원하지 않는다."},
+      ]},
+      {id:'q12',name:'해석 2',icon:'✨',sub:'46~50번',type:'trans',qs:[
+        {q:"Their dislike did not affect their tendency to copy ingroup behavior more closely than outgroup behavior.",ko:"그들의 싫음은 외집단 행동보다 내집단 행동을 더 가까이 모방하는 경향에 영향을 미치지 않았다."},
+        {q:"It's important to recognize that the way of thinking that lies behind these words slowly extinguishes certain habits from our daily life.",ko:"이 말들 뒤에 있는 사고방식이 우리의 일상 생활에서 특정 습관을 서서히 사라지게 한다는 것을 인식하는 것이 중요하다."},
+        {q:"The set point is the trigger in these cells that will send a message to your brain saying that your fat cells are getting too thin.",ko:"설정점은 지방 세포가 너무 얇아지고 있다고 뇌에 메시지를 보내는 이 세포들의 방아쇠이다."},
+        {q:"The more weight you carried in your childhood and your teenage years, the more fat cells you will have as an adult.",ko:"어린 시절과 청소년기에 더 많은 체중을 가질수록, 어른이 되어서 더 많은 지방 세포를 갖게 될 것이다."},
+        {q:"In more and more contexts, patience becomes a form of power.",ko:"점점 더 많은 상황에서 인내는 힘의 한 형태가 된다."},
+      ]},
+    ]
+  }
+];
+
+let S = {role:'student',name:'',zone:null,quest:null,qIdx:0,score:0};
+
+function $(id){return document.getElementById(id)}
+function show(id){$(id).classList.remove('hidden')}
+function hide(id){$(id).classList.add('hidden')}
+function hideAll(){['map-screen','quiz-screen','teacher-screen'].forEach(hide)}
+function initials(n){return n.trim().split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?'}
+
+function getResults(){try{return JSON.parse(localStorage.getItem(RESULT_KEY)||'[]')}catch(e){return[]}}
+function pushResult(r){const a=getResults();a.push(r);localStorage.setItem(RESULT_KEY,JSON.stringify(a))}
+function getProgress(name){try{return JSON.parse(localStorage.getItem('rq_prog_'+name)||'{}')}catch(e){return{}}}
+function setProgress(name,questId,data){const p=getProgress(name);p[questId]=data;localStorage.setItem('rq_prog_'+name,JSON.stringify(p))}
+
+// Teacher password login
+
+function selectRole(r){
+  S.role=r;
+  $('role-student').classList.toggle('selected',r==='student');
+  $('role-teacher').classList.toggle('selected',r==='teacher');
+  $('student-form').style.display=r==='student'?'block':'none';
+  $('teacher-form').style.display=r==='teacher'?'block':'none';
+}
+
+function startApp(){
+  if(S.role==='teacher'){
+    const pw=$('teacher-password-input').value.trim();
+    if(!pw){alert('비밀번호를 입력하세요');return}
+    if(pw!=='teacher2026!'){alert('비밀번호가 틀렸습니다.');return}
+    S.name='교사';
+    hide('login-screen');show('main-nav');
+    $('nav-title').textContent='📊 교사 대시보드';
+    showTeacher();
+  } else {
+    const cls=$('class-select').value;
+    const num=$('number-input').value.trim();
+    const name=$('name-input').value.trim();
+    if(!cls){alert('반을 선택하세요');return}
+    if(!num){alert('번호를 입력하세요');return}
+    if(!name){alert('이름을 입력하세요');return}
+    S.name=`${cls}반 ${num}번 ${name}`;
+    hide('login-screen');show('main-nav');
+    $('nav-title').textContent='📚 Reading Quest';
+    showMap();
+  }
+}
+
+function logout(){
+  S={role:'student',name:'',zone:null,quest:null,qIdx:0,score:0};
+  hide('main-nav');hideAll();
+  $('name-input').value='';
+  $('number-input').value='';
+  $('class-select').value='';
+  const pwField=document.getElementById('teacher-password-input'); if(pwField) pwField.value='';
+  $('role-student').classList.add('selected');$('role-teacher').classList.remove('selected');
+  $('student-form').style.display='block';$('teacher-form').style.display='none';
+  show('login-screen');
+}
+
+function showMap(){
+  hideAll();show('map-screen');
+  const prog=getProgress(S.name);
+  const totalXP=Object.values(prog).reduce((s,v)=>s+(v.xp||0),0);
+  let html=`<div class="student-hdr">
+    <div class="avatar">${initials(S.name)}</div>
+    <div class="xp-wrap">
+      <div class="xp-name">${S.name}</div>
+      <div class="xp-bar-outer"><div class="xp-bar-inner" style="width:${Math.min(100,totalXP/5)}%"></div></div>
+      <div class="xp-text">⭐ ${totalXP} XP</div>
+    </div>
+  </div>`;
+  ZONES.forEach((zone,zi)=>{
+    const prevZoneDone=zi===0||getProgress(S.name)[ZONES[zi-1].quests.at(-1).id]?.done;
+    html+=`<div class="zone-label">${zone.icon} ${zone.name}</div><div class="quest-grid">`;
+    zone.quests.forEach(quest=>{
+      const p=prog[quest.id];const done=p?.done;
+      const unlocked=prevZoneDone;
+      const cls=done?'completed':unlocked?'playable':'locked';
+      html+=`<div class="quest-card ${cls}" onclick="tryQuest('${zone.id}','${quest.id}',${!unlocked})">
+        <div class="q-icon">${quest.icon}</div>
+        <div class="q-name">${quest.name}</div>
+        <div class="q-sub">${quest.sub}</div>
+        ${done?`<span class="q-badge badge-done">✓ ${p.pct}%</span>`:unlocked?`<span class="q-badge badge-go">도전!</span>`:`<span class="q-badge badge-lock">🔒</span>`}
+      </div>`;
+    });
+    html+='</div>';
+  });
+  $('map-screen').innerHTML=html;
+}
+
+function tryQuest(zoneId,questId,locked){
+  if(locked){alert('이전 Zone을 먼저 완료하세요!');return}
+  const zone=ZONES.find(z=>z.id===zoneId);
+  const quest=zone.quests.find(q=>q.id===questId);
+  S.zone=zone;S.quest=quest;S.qIdx=0;S.score=0;
+  showQuiz();
+}
+
+function showQuiz(){hideAll();show('quiz-screen');renderQ()}
+
+function renderQ(){
+  const quest=S.quest;const q=quest.qs[S.qIdx];const tot=quest.qs.length;
+  const pct=Math.round(S.qIdx/tot*100);
+  let ansHtml='';
+  if(quest.type==='tf'){
+    ansHtml=`<div class="tf-row">
+      <button class="opt-btn" id="opt-O" onclick="doTF('O')">O</button>
+      <button class="opt-btn" id="opt-X" onclick="doTF('X')">X</button>
+    </div>`;
+  } else if(quest.type==='mc'){
+    ansHtml=`<div class="opts">${q.opts.map((o,i)=>`<button class="opt-btn" id="opt-${i}" onclick="doMC(${i})">${['①','②','③','④'][i]} ${o}</button>`).join('')}</div>`;
+  } else {
+    ansHtml=`<textarea class="trans-area" id="trans-in" placeholder="한국어로 해석을 입력하세요..."></textarea><br>
+    <button class="submit-btn" onclick="doTrans()">제출하기</button>`;
+  }
+  $('quiz-screen').innerHTML=`
+    <div class="quiz-hdr">
+      <button class="back-btn" onclick="showMap()">← 지도</button>
+      <span class="quiz-title">${quest.icon} ${quest.name}</span>
+    </div>
+    <div class="prog-row">
+      <div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div>
+      <span class="prog-txt">${S.qIdx+1}/${tot}</span>
+    </div>
+    <div class="q-card" id="q-card">
+      <div class="q-num">Q${S.qIdx+1}</div>
+      <div class="q-text">${q.q}</div>
+      ${ansHtml}
+      <div id="fb" class="hidden"></div>
+    </div>`;
+}
+
+function showFB(ok, msg){
+  const fb=$('fb');fb.className=`feedback ${ok?'fb-ok':'fb-ng'}`;
+  fb.innerHTML=`${ok?'🎉 정답!':'❌ 오답'} ${msg}`;fb.classList.remove('hidden');
+  const isLast=S.qIdx>=S.quest.qs.length-1;
+  const nb=document.createElement('button');nb.className='next-btn';
+  nb.textContent=isLast?'결과 보기 🏆':'다음 문제 →';
+  nb.onclick=()=>{S.qIdx++;isLast?showResult():renderQ()};
+  $('q-card').appendChild(nb);
+}
+
+function doTF(ans){
+  const q=S.quest.qs[S.qIdx];const ok=ans===q.a;if(ok)S.score++;
+  $('opt-O').disabled=true;$('opt-X').disabled=true;
+  $('opt-'+q.a).classList.add('correct');
+  if(!ok)$('opt-'+ans).classList.add('wrong');
+  showFB(ok,q.exp);
+}
+
+function doMC(idx){
+  const q=S.quest.qs[S.qIdx];const ok=idx===q.a;if(ok)S.score++;
+  for(let i=0;i<q.opts.length;i++){const b=$('opt-'+i);if(b){b.disabled=true;if(i===q.a)b.classList.add('correct');if(i===idx&&!ok)b.classList.add('wrong');}}
+  showFB(ok,ok?'정확합니다!':'정답: '+['①','②','③','④'][q.a]+' '+q.opts[q.a]);
+}
+
+function doTrans(){
+  const inp=$('trans-in');if(!inp.value.trim()){alert('해석을 입력하세요');return}
+  inp.disabled=true;document.querySelector('.submit-btn').disabled=true;
+  S.score++;
+  const q=S.quest.qs[S.qIdx];
+  const fb=$('fb');fb.className='feedback fb-ok';
+  fb.innerHTML=`📝 모범 번역: <em>${q.ko}</em>`;fb.classList.remove('hidden');
+  const isLast=S.qIdx>=S.quest.qs.length-1;
+  const nb=document.createElement('button');nb.className='next-btn';
+  nb.textContent=isLast?'결과 보기 🏆':'다음 문제 →';
+  nb.onclick=()=>{S.qIdx++;isLast?showResult():renderQ()};
+  $('q-card').appendChild(nb);
+}
+
+function showResult(){
+  const quest=S.quest;const tot=quest.qs.length;
+  const pct=Math.round(S.score/tot*100);
+  const xp=quest.type==='trans'?tot*15:S.score*10;
+  const stars=pct>=90?'⭐⭐⭐':pct>=70?'⭐⭐':'⭐';
+  const emoji=pct>=90?'🏆':pct>=70?'🎉':'💪';
+  const msg=pct>=90?'완벽합니다! 다음 퀘스트도 도전하세요!':pct>=70?'잘했어요! 조금만 더 노력하면 만점!':'틀린 문제를 복습하고 다시 도전해보세요!';
+  setProgress(S.name,quest.id,{done:true,pct,xp,score:S.score,total:tot});
+  pushResult({name:S.name,quest:quest.name,questId:quest.id,zone:S.zone.name,score:S.score,total:tot,pct,xp,time:new Date().toISOString()});
+  hideAll();show('map-screen');
+  $('map-screen').innerHTML=`<div class="result-wrap"><div class="result-card">
+    <div class="r-emoji">${emoji}</div>
+    <div class="r-stars">${stars}</div>
+    <div class="r-score">${S.score} / ${tot}</div>
+    <div class="r-sub">${quest.name} 완료!</div>
+    <div class="r-xp">⭐ +${xp} XP 획득!</div>
+    <div class="r-msg">정답률 <strong>${pct}%</strong><br>${msg}</div>
+    <button class="next-btn" onclick="showMap()">퀘스트 지도로 돌아가기</button>
+  </div></div>`;
+}
+
+function showTeacher(){
+  hideAll();show('teacher-screen');
+  const results=getResults();
+  const students={};
+  results.forEach(r=>{
+    if(!students[r.name])students[r.name]={name:r.name,xp:0,correct:0,total:0,count:0};
+    students[r.name].xp+=r.xp||0;
+    students[r.name].correct+=r.score||0;
+    students[r.name].total+=r.total||0;
+    students[r.name].count++;
+  });
+  const questStats={};
+  results.forEach(r=>{
+    if(!questStats[r.questId])questStats[r.questId]={name:r.quest,scores:[]};
+    questStats[r.questId].scores.push(r.pct||0);
+  });
+  const stuList=Object.values(students);
+  const avgXP=stuList.length?Math.round(stuList.reduce((s,v)=>s+v.xp,0)/stuList.length):0;
+
+  let html=`<div class="t-hdr"><h2>📊 교사 대시보드</h2><button class="clear-btn" onclick="clearAll()">초기화</button></div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-n">${stuList.length}</div><div class="stat-l">참여 학생 수</div></div>
+    <div class="stat-box"><div class="stat-n">${results.length}</div><div class="stat-l">총 퀘스트 완료</div></div>
+    <div class="stat-box"><div class="stat-n">${avgXP}</div><div class="stat-l">평균 XP</div></div>
+  </div>`;
+
+  if(stuList.length){
+    html+=`<div class="section-title">학생별 현황</div><div class="stu-table">
+    <div class="stu-hdr"><span>이름</span><span>XP</span><span>정답률</span><span>완료퀘스트</span></div>`;
+    stuList.sort((a,b)=>b.xp-a.xp).forEach(s=>{
+      const acc=s.total?Math.round(s.correct/s.total*100):0;
+      html+=`<div class="stu-row"><span style="font-weight:600">${s.name}</span><span style="color:#0F6E56;font-weight:600">⭐${s.xp}</span><span>${acc}%</span><span style="color:#aaa">${s.count}개</span></div>`;
+    });
+    html+='</div>';
+  }
+
+  const qKeys=Object.keys(questStats);
+  if(qKeys.length){
+    html+=`<div class="section-title" style="margin-top:20px">퀘스트별 평균 정답률</div><div class="q-stat-box"><h3>낮을수록 어려운 문제 — 복습 포인트!</h3>`;
+    ZONES.forEach(zone=>{
+      zone.quests.forEach(q=>{
+        const s=questStats[q.id];if(!s)return;
+        const avg=Math.round(s.scores.reduce((a,b)=>a+b,0)/s.scores.length);
+        const col=avg>=80?'#1D9E75':avg>=60?'#378ADD':'#D85A30';
+        html+=`<div class="bar-row"><span class="bar-lbl">${q.icon} ${q.name}</span><div class="bar-track"><div class="bar-fill" style="width:${avg}%;background:${col}"></div></div><span class="bar-pct">${avg}%</span></div>`;
+      });
+    });
+    html+='</div>';
+  }
+
+  if(!stuList.length)html+=`<div class="empty-msg">아직 학생 데이터가 없습니다.<br>학생들이 퀘스트를 완료하면<br>여기에 결과가 표시됩니다.</div>`;
+  $('teacher-screen').innerHTML=html;
+}
+
+function clearAll(){
+  if(confirm('모든 학생 데이터를 초기화할까요?')){localStorage.removeItem(RESULT_KEY);showTeacher()}
+}
+</script>
+</body>
+</html>
